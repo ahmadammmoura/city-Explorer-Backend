@@ -8,6 +8,7 @@ app.use(cors())
 
 app.get('/weather', function (req, res) {
   res.send(data);
-})
+});
+
  
 app.listen(port)
