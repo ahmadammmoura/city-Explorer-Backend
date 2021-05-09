@@ -4,24 +4,47 @@ const
   router = express.Router(),
   superagent = require('superagent');
   routeBase = '/weather',
-  key = process.env.WEATHER_BIT_KEY;
+  keyWeather = process.env.WEATHER_BIT_KEY;
 
 
-router.get(routeBase, function (req, res) {
+router.get(routeBase, getWeather);
+
+const memory ={ }
+
+
+function getWeather(req,res){
+
+  const weatherBitUrl = `https://api.weatherbit.io/v2.0/forecast/daily`;
+
+  const queryParams ={
+    key : keyWeather,
+    lat : req.query.lat,
+    lon : req.query.lon
+  }
+
+  
+
+
   try {
-
-    const weatherBitUrl = `https://api.weatherbit.io/v2.0/forecast/daily?key=${key}&lat=${req.query.lat}&lon=${req.query.lon}`
-
     superagent.get(weatherBitUrl)
+      .query(queryParams)
       .then(city => city.body.data)
       .then(data => {
+        if(memory[`city${queryParams.lat}`] !== undefined){
+          console.log('from memory')
+          res.send(memory[`city${queryParams.lat}`] );
+        }else{
         const arrayOfData = data.map(city => new Weather(city));
+        memory[`city${queryParams.lat}`] = arrayOfData
+        console.log('with req')
         res.send(arrayOfData);
-      })
+        }
+      });
+    
   } catch (error) {
     res.send(error)
   }
-});
+}
 
 
 class Weather {

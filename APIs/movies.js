@@ -6,22 +6,45 @@ const
   routeBase = '/movies'
   moviesKey = process.env.MOVIES_API_KEY
 
-  router.get(routeBase, function (req, res) {
+  router.get(routeBase,getMovies);
+  const memory ={ }
 
-    try{
-      const moviesURL = `https://api.themoviedb.org/3/search/movie?api_key=${moviesKey}&query=${req.query.cityName}&page=1&include_adult=false&page=1`
-      const weatherData = superagent.get(moviesURL)
-      .then(movie => movie.body.results)
-      .then(data => {
+function getMovies(req,res){
+
+  const moviesURL = `https://api.themoviedb.org/3/search/movie`
+
+  const queryParams = {
+    api_key : moviesKey,
+    query : req.query.cityName,
+    page : 1,
+    include_adult : false
+  }
+
+  try{
+    
+    superagent.get(moviesURL)
+    .query(queryParams)
+    .then(movie => movie.body.results)
+    .then(data => {
+
+      if(memory[queryParams.query]!== undefined){
+        console.log("using cash")
+        res.send(memory[queryParams.query]);
+      }else{
+        console.log('from req ')
         const arrayOfmovies = data.map(movie => new Movies(movie));
-        console.log(arrayOfmovies)
-        res.send(arrayOfmovies);
-      })
-    }catch (error) {
-      res.send(error)
-    }
-  
-  });
+        memory[queryParams.query] = arrayOfmovies
+
+        console.log(memory)
+        res.status(200).send(arrayOfmovies);
+      }
+    })
+  }catch (error) {
+    res.status(500).send(error)
+  }
+
+
+}
 
   class Movies {
     constructor(data){
