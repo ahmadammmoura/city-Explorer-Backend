@@ -26,20 +26,23 @@ function getWeather(req,res){
 
 
   try {
-    superagent.get(weatherBitUrl)
+
+    if(memory[`city${queryParams.lat}`] !== undefined){
+      console.log('from memory')
+      res.send(memory[`city${queryParams.lat}`] );
+    }else{
+      superagent.get(weatherBitUrl)
       .query(queryParams)
       .then(city => city.body.data)
       .then(data => {
-        if(memory[`city${queryParams.lat}`] !== undefined){
-          console.log('from memory')
-          res.send(memory[`city${queryParams.lat}`] );
-        }else{
+
         const arrayOfData = data.map(city => new Weather(city));
         memory[`city${queryParams.lat}`] = arrayOfData
         console.log('with req')
         res.send(arrayOfData);
-        }
+    
       });
+    }
     
   } catch (error) {
     res.send(error)

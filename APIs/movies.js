@@ -21,24 +21,21 @@ function getMovies(req,res){
   }
 
   try{
-    
-    superagent.get(moviesURL)
-    .query(queryParams)
-    .then(movie => movie.body.results)
-    .then(data => {
 
-      if(memory[queryParams.query]!== undefined){
-        console.log("using cash")
-        res.send(memory[queryParams.query]);
-      }else{
+    if(memory[queryParams.query]!== undefined){
+      console.log("using cash")
+      res.send(memory[queryParams.query]);
+    }else{
+      superagent.get(moviesURL)
+      .query(queryParams)
+      .then(movie => movie.body.results)
+      .then(data => {
         console.log('from req ')
         const arrayOfmovies = data.map(movie => new Movies(movie));
         memory[queryParams.query] = arrayOfmovies
-
-        console.log(memory)
         res.status(200).send(arrayOfmovies);
-      }
-    })
+      })
+    }
   }catch (error) {
     res.status(500).send(error)
   }
